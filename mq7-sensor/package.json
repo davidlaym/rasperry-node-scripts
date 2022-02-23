@@ -1,0 +1,18 @@
+{
+  "name": "mq7-script",
+  "version": "1.0.0",
+  "description": "",
+  "main": "read_mq7.js",
+  "scripts": {
+    "run": "node read_mq7.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ansi-colors": "^4.1.1",
+    "cli-progress": "^3.10.0",
+    "humanize-duration": "^3.27.1",
+    "mcp-spi-adc": "^3.2.0"
+  }
+}
