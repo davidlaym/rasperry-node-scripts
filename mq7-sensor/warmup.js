@@ -14,7 +14,7 @@ const b1 = new cliProgress.SingleBar({
   hideCursor: true,
 });
 
-const coSensor = mcpadc.open(5, { speedHz: 20000 }, (err) => {
+const coSensor = mcpadc.open(0, { speedHz: 20000 }, (err) => {
   if (err) throw err;
   const initialMS = new Date().getTime();
   const targetMS = initialMS + 28800000; // 8 hours
