@@ -58,12 +58,18 @@ function readData(dataPin, context) {
     };
   }
   
+  const bytes = chunkify(context.result, 8);
+  context.DHTData.push(bytes.map);
   
-for (const  j=0; j< 5; j++){     // redo it for the 5 Bytes (40 Databits /8 = 5)
-  for (const  i=0; i< 8; i++) {bitWrite(DHTData[j], 7-i, Result[i+2+(j*8)]);}  // Create 5 Databytes from the 40 Databits (Ignoring the 2 first Databits)
-  
-  }
+}
 
+
+function chunkify(arr, len) {
+  var chunks = [], i = 0, n = arr.length;
+  while (i < n) {
+    chunks.push(arr.slice(i, i += len));
+  }
+  return chunks;
 }
 
 function moveToNextDataset(_, context) {
@@ -89,13 +95,3 @@ function enableSensor(dataPin) {
   console.log('sensor enabled');
 }
 
-
-process.on('SIGINT', _ => {
-  cleanUp();
-});
-
-function cleanUp() {
-  openPorts.forEach(port => {
-    port.unexport();
-  });
-}

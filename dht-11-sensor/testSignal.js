@@ -6,42 +6,71 @@ const openPins = [];
 
 const bits = [];
 
+const ONE_SECOND = 1000000;
+const ONE_MS = 1000;
+
+process.on("SIGINT", (_) => {
+  cleanUp(true);
+});
+
 console.log(`Opening GPIO port ${DHT11_PIN}`);
 const pin = new GPIO(DHT11_PIN, "in", "both");
 openPins.push(pin);
+let timeoutClock = null;
 
-pin.watch((err, val) => {
-  if (err) {
-    pin.unwatchAll();
-    console.error(err);
-    process.exit(1);
-  }
-  if (val === 1) {
-    lastHigh = micros();
-    process.stdout.write("╱▔");
-  } else {
-    const highDuration = micros() - lastHigh;
-    const bit = highDuration > 70 ? 1 : 0;
-    if (bit) {
-      process.stdout.write("▔▔");
-    }
+const mainloop = setInterval(() => {
+  readSensor();
+}, 3000);
 
-    process.stdout.write("╲▁");
-    bits.push(bit);
-    if (bits.length >= 40) {
+function readSensor() {
+  cleanUp();
+  process.stdout.write("\n\n");
+  process.stdout.write("Reading...\n");
+
+  timeoutClock = setTimeout(() => {
+    process.stdout.write("\n");
+    process.stdout.write("Incomplete data received!\n");
+    cleanUp();
+  }, 1500);
+
+  pin.watch((err, val) => {
+    if (err) {
       pin.unwatchAll();
-      resolve(0);
+      console.error(err);
+      process.exit(1);
     }
-  }
-});
-process.stdout.write("~");
-waitForHigh(pin, 15000000, "~");
-process.stdout.write("▔╲▁");
-pin.setDirection("out");
-setLowForMicros(pin, 1000000);
-process.stdout.write("╱▔");
-setHighForMicros(pin, 40);
-pin.setDirection("in");
+    if (val === 1) {
+      lastHigh = micros();
+      process.stdout.write("╱▔");
+    } else {
+      const highDuration = micros() - lastHigh;
+      const bit = highDuration > 70 ? 1 : 0;
+      if (bit) {
+        process.stdout.write("▔▔");
+      }
+
+      process.stdout.write("╲▁");
+      bits.push(bit);
+      if (bits.length >= 40) {
+        process.stdout.write("\n");
+        console.log("40 bits received");
+        console.log("bits: " + bits.join(""));
+      }
+    }
+  });
+
+  process.stdout.write("~");
+  waitForHigh(pin, 250 * ONE_MS, "~");
+  process.stdout.write("▔╲▁");
+  pin.setDirection("out");
+  setLowForMicros(pin, 30 * ONE_MS);
+  process.stdout.write("╱▔");
+  pin.writeSync(1);
+  // process.stdout.write("╲▁");
+  // pin.writeSync(0);
+  pin.setDirection("in");
+}
+
 /*
 readDHT11(DHT11_PIN)
   .then(([rh, temp]) => {
@@ -140,15 +169,19 @@ function waitForHigh(pin, timeoutMicros, feedback) {
     continue;
   }
 }
-process.on("SIGINT", (_) => {
-  cleanUp();
-});
 
-function cleanUp() {
+function cleanUp(kill) {
+  if (timeoutClock) {
+    clearTimeout(timeoutClock);
+    timeoutClock = null;
+  }
   if (openPins && openPins.length) {
     openPins.forEach((port) => {
       port.unwatchAll();
-      port.unexport();
+      if (kill) {
+        port.unexport();
+        clearInterval(mainloop);
+      }
     });
   }
 }
