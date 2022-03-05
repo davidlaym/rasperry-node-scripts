@@ -198,7 +198,7 @@ function read_dht11(vals) {
  */
 var v = Buffer(5);
 
-console.log("Starting measurements");
+// console.log("Starting measurements");
 while (true) {
   /*
    * On some DHT11 the fractional parts are always 0, but print them out
@@ -209,16 +209,20 @@ while (true) {
    * by the datasheet between samples.
    */
   if (read_dht11(v)) {
-    console.log(
-      "Temperature = %d.%dC, Humidity = %d.%d%%",
-      v[2],
-      v[3],
-      v[0],
-      v[1]
-    );
+   // console.log(
+   //   "Temperature = %d.%dC, Humidity = %d.%d%%",
+   //   v[2],
+   //   v[3],
+   //   v[0],
+   //   v[1]
+   // );
+
+// console.log(`{"temp":"${v[2]}.${v[3]}", "hr":"${v[0]}.${v[1]}", "timestamp":"${(new Date()).toISOString()}"}`)
+ console.log(`"${v[2]}.${v[3]}";"${v[0]}.${v[1]}";"${(new Date()).toISOString()}"`)
     rpio.sleep(5);
   } else {
-    console.log("x");
+    //console.log("x");
     rpio.sleep(1);
   }
 }
+
